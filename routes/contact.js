@@ -3,6 +3,10 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 
+router.post('/', upload.single('cv'), contactController.submitForm);
+
+router.get('/', contactController.getContacts);
+
 // stock du fichier
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -15,7 +19,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Simuler une base de données temporaire
+// Simuler base de données temporaire
 let contacts = [];
 
 // POST: réception des données
