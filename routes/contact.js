@@ -4,6 +4,11 @@ const path = require('path');
 
 const router = express.Router();
 
+// stockage des infos dans un fichier json en attendant
+const fs = require('fs');
+const contactsFile = 'contacts.json';
+
+
 // stock du fichier 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -17,8 +22,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Simuler base de données temporaire
+// charge les données si fichier existant
 let contacts = [];
+if (fs.existsSync(contactsFile)) {
+  contacts = JSON.parse(fs.readFileSync(contactsFile));
+}
 
 // POST: réception des données
 router.post('/', upload.single('cv'), (req, res) => {
@@ -38,7 +46,7 @@ router.post('/', upload.single('cv'), (req, res) => {
 
   contacts.push(nouveauContact);
   console.log('Contact reçu :', nouveauContact);
-
+  fs.writeFileSync(contactsFile, JSON.stringify(contacts, null, 2));
   res.status(200).json({ success: true, message: 'Message reçu avec succès.' });
 });
 
@@ -46,5 +54,6 @@ router.post('/', upload.single('cv'), (req, res) => {
 router.get('/', (req, res) => {
   res.json(contacts);
 });
+
 
 module.exports = router;
