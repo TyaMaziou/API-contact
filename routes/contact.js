@@ -22,38 +22,46 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// charge les données si fichier existant
+// charge les données dans un fichier json et force sa création si fichier non existant
 let contacts = [];
 if (fs.existsSync(contactsFile)) {
   contacts = JSON.parse(fs.readFileSync(contactsFile));
+} else {
+  fs.writeFileSync(contactsFile, JSON.stringify([]));
 }
 
 // POST: réception des données
 router.post('/', upload.single('cv'), (req, res) => {
-  const { nom, prenom, email, telephone, objet, message, societe } = req.body;
+  try {
+    const { nom, prenom, email, telephone, objet, message, societe } = req.body;
 
-  const nouveauContact = {
-    nom,
-    prenom,
-    email,
-    telephone,
-    objet,
-    message,
-    societe,
-    fichier: req.file?.filename || null,
-    date: new Date()
-  };
+    const nouveauContact = {
+      nom,
+      prenom,
+      email,
+      telephone,
+      objet,
+      message,
+      societe,
+      fichier: req.file?.filename || null,
+      date: new Date()
+    };
 
-  contacts.push(nouveauContact);
-  console.log('Contact reçu :', nouveauContact);
-  fs.writeFileSync(contactsFile, JSON.stringify(contacts, null, 2));
-  res.status(200).json({ success: true, message: 'Message reçu avec succès.' });
+    contacts.push(nouveauContact);
+    fs.writeFileSync(contactsFile, JSON.stringify(contacts, null, 2));
+    console.log('Contact reçu :', nouveauContact);
+    res.status(200).json({ success: true, message: 'Message reçu avec succès.' });
+  } catch (err) {
+    console.error('Erreur lors de la sauvegarde :', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
 });
 
 // GET: affiche les messages
 router.get('/', (req, res) => {
+  console.log('GET /api/contact called');
+  console.log('Contacts actuels :', contacts);
   res.json(contacts);
 });
-
 
 module.exports = router;
